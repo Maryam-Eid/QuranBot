@@ -3,6 +3,7 @@ import asyncio
 from telegram import Bot, InputMediaPhoto
 from glob import glob
 import logging
+import pytz
 from datetime import datetime
 import os
 import re
@@ -55,9 +56,9 @@ async def send_local_quranic_pages():
         file.write(str(current_page))
 
 
-def parse_prayer_time(time_str):
+def parse_prayer_time(time_str, tzinfo):
     hours, minutes = map(int, time_str.split(':'))
-    now = datetime.now()
+    now = datetime.now(tzinfo)
     prayer_time = now.replace(hour=hours, minute=minutes, second=0, microsecond=0)
     return prayer_time
 
@@ -74,7 +75,7 @@ async def calculate_prayer_time(prayer_name, date):
             response.raise_for_status()
             data = response.json()
             prayer_time_str = data['data']['timings'][prayer_name]
-            prayer_time = parse_prayer_time(prayer_time_str)
+            prayer_time = parse_prayer_time(prayer_time_str, date.tzinfo)
             return prayer_time
     except Exception as e:
         logging.error(f"Error fetching prayer times: {e}")
@@ -85,8 +86,11 @@ async def prayer_time_loop():
     prayers = ['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء']
     current_prayer = 0
 
+    tz_cairo = pytz.timezone('Africa/Cairo')
+
     while True:
-        now = datetime.now()
+
+        now = datetime.now(tz_cairo)
 
         logging.info("Fetching prayer times from the API...")
         year, month = now.year, now.month
