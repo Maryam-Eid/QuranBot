@@ -13,6 +13,7 @@ bot = Bot(token='6479590757:AAH2m-4vPBHpATbHen5X14fxVNgo0oSz0p4')
 channel_id = '@elquranelkareem1'
 current_page_file = 'current_page.txt'
 
+
 def get_local_quranic_pages():
     pages = glob('quran-images/*.png')
     sorted_pages = sorted(pages, key=lambda x: int(re.search(r'\d+', x).group()))
@@ -52,6 +53,7 @@ async def send_local_quranic_pages():
 
     with open(current_page_file, 'w') as file:
         file.write(str(current_page))
+
 
 def parse_prayer_time(time_str):
     hours, minutes = map(int, time_str.split(':'))
@@ -106,6 +108,7 @@ async def prayer_time_loop():
         logging.info(f'Asr Time: {asr_time}')
         logging.info(f'Maghrib Time: {maghrib_time}')
         logging.info(f'Isha Time: {isha_time}')
+        logging.info(now)
 
         upcoming_prayers = [time for time in prayer_times if time > now]
 
@@ -126,6 +129,6 @@ async def prayer_time_loop():
         else:
             await asyncio.sleep(total_seconds_until_prayer - 30)
 
+
 if __name__ == "__main__":
     asyncio.run(prayer_time_loop())
-
