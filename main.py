@@ -95,13 +95,20 @@ async def prayer_time_loop():
         maghrib_time = await calculate_prayer_time('Maghrib', now)
         isha_time = await calculate_prayer_time('Isha', now)
 
+        prayer_times = [fajr_time, dhuhr_time, asr_time, maghrib_time, isha_time]
+        if any(time is None for time in prayer_times):
+            logging.error("Error fetching prayer times. Retrying...")
+            await asyncio.sleep(60)
+            continue
+
         logging.info(f'Fajr Time: {fajr_time}')
         logging.info(f'Dhuhr Time: {dhuhr_time}')
         logging.info(f'Asr Time: {asr_time}')
         logging.info(f'Maghrib Time: {maghrib_time}')
         logging.info(f'Isha Time: {isha_time}')
 
-        upcoming_prayers = list(filter(lambda x: x > now, [fajr_time, dhuhr_time, asr_time, maghrib_time, isha_time]))
+        upcoming_prayers = [time for time in prayer_times if time > now]
+
         if not upcoming_prayers:
             logging.info("No upcoming prayer times. Waiting for the next fetch...")
             await asyncio.sleep(7200)
