@@ -84,7 +84,7 @@ async def calculate_prayer_time(prayer_name, date):
 
 async def prayer_time_loop():
     prayers = ['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء']
-    current_prayer = 0
+    current_prayer = 3
 
     tz_cairo = pytz.timezone('Africa/Cairo')
 
@@ -126,13 +126,13 @@ async def prayer_time_loop():
         total_seconds_until_prayer = int(time_until_next_prayer.total_seconds())
         logging.info(f'Time until the next prayer: {total_seconds_until_prayer} seconds')
 
-        if 60 >= total_seconds_until_prayer >= 0:
+        if 120 >= total_seconds_until_prayer >= 0:
             await asyncio.sleep(10 * 60)
             await send_local_quranic_pages()
             await bot.send_message(chat_id=channel_id, text=f"ورد صلاة {prayers[current_prayer]} ♡")
             current_prayer = (current_prayer + 1) % len(prayers)
         else:
-            await asyncio.sleep(total_seconds_until_prayer - 30)
+            await asyncio.sleep(total_seconds_until_prayer - 60)
 
 
 if __name__ == "__main__":
