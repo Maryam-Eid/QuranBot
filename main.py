@@ -7,11 +7,16 @@ import pytz
 from datetime import datetime
 import os
 import re
+from dotenv import load_dotenv
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 
-bot = Bot(token='6479590757:AAH2m-4vPBHpATbHen5X14fxVNgo0oSz0p4')
-channel_id = '@elquranelkareem1'
+
+token = os.environ.get('TELEGRAM_BOT_TOKEN')
+channel_id = os.environ.get('TELEGRAM_CHANNEL_ID')
+
+bot = Bot(token=token)
 current_page_file = 'current_page.txt'
 
 
@@ -84,7 +89,7 @@ async def calculate_prayer_time(prayer_name, date):
 
 async def prayer_time_loop():
     prayers = ['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء']
-    current_prayer = 3
+    current_prayer = 0
 
     tz_cairo = pytz.timezone('Africa/Cairo')
 
@@ -137,3 +142,4 @@ async def prayer_time_loop():
 
 if __name__ == "__main__":
     asyncio.run(prayer_time_loop())
+
