@@ -89,7 +89,7 @@ async def calculate_prayer_time(prayer_name, date):
 
 async def prayer_time_loop():
     prayers = ['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء']
-    current_prayer = 0
+    current_prayer = 1
 
     tz_cairo = pytz.timezone('Africa/Cairo')
 
