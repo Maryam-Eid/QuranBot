@@ -100,7 +100,7 @@ async def calculate_prayer_time(prayer_name, date):
 # Function to continuously check and send prayer times
 async def prayer_time_loop():
     prayers = ['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء']
-    current_prayer = 1
+    current_prayer = 4
 
     tz_cairo = pytz.timezone('Africa/Cairo')
 
