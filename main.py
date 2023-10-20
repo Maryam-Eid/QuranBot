@@ -1,34 +1,42 @@
-import httpx
 import asyncio
-from telegram import Bot, InputMediaPhoto
-from glob import glob
 import logging
-import pytz
-from datetime import datetime
 import os
 import re
+from datetime import datetime
 from dotenv import load_dotenv
-load_dotenv()
+import pytz
+from glob import glob
+import httpx
+from telegram import Bot, InputMediaPhoto
 
+# Configure logging
 logging.basicConfig(level=logging.INFO)
 
+# Load environment variables from .env file
+load_dotenv()
 
 token = os.environ.get('TELEGRAM_BOT_TOKEN')
 channel_id = os.environ.get('TELEGRAM_CHANNEL_ID')
 
+# Initialize the Telegram bot
 bot = Bot(token=token)
+
+# File to store the current Quranic page
 current_page_file = 'current_page.txt'
 
 
+# Function to get a list of local Quranic pages
 def get_local_quranic_pages():
     pages = glob('quran-images/*.png')
-    sorted_pages = sorted(pages, key=lambda x: int(re.search(r'\d+', x).group()))
-    return sorted_pages
+    pages.sort()
+    return pages
 
 
+# Function to send local Quranic pages to the Telegram channel
 async def send_local_quranic_pages():
     pages = get_local_quranic_pages()
 
+    # Read the current page from the file or initialize it to 0
     if os.path.exists(current_page_file):
         with open(current_page_file, 'r') as file:
             current_page = int(file.read().strip())
@@ -61,6 +69,7 @@ async def send_local_quranic_pages():
         file.write(str(current_page))
 
 
+# Function to parse prayer time string and convert it to a datetime object
 def parse_prayer_time(time_str, tzinfo):
     hours, minutes = map(int, time_str.split(':'))
     now = datetime.now(tzinfo)
@@ -68,6 +77,7 @@ def parse_prayer_time(time_str, tzinfo):
     return prayer_time
 
 
+# Function to fetch and calculate prayer times
 async def calculate_prayer_time(prayer_name, date):
     try:
         async with httpx.AsyncClient() as client:
@@ -87,6 +97,7 @@ async def calculate_prayer_time(prayer_name, date):
         return None
 
 
+# Function to continuously check and send prayer times
 async def prayer_time_loop():
     prayers = ['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء']
     current_prayer = 1
@@ -94,12 +105,10 @@ async def prayer_time_loop():
     tz_cairo = pytz.timezone('Africa/Cairo')
 
     while True:
-
         now = datetime.now(tz_cairo)
-
         logging.info("Fetching prayer times from the API...")
-        year, month = now.year, now.month
 
+        # Fetch prayer times for the current day
         fajr_time = await calculate_prayer_time('Fajr', now)
         dhuhr_time = await calculate_prayer_time('Dhuhr', now)
         asr_time = await calculate_prayer_time('Asr', now)
@@ -112,12 +121,11 @@ async def prayer_time_loop():
             await asyncio.sleep(60)
             continue
 
-        logging.info(f'Fajr Time: {fajr_time}')
-        logging.info(f'Dhuhr Time: {dhuhr_time}')
-        logging.info(f'Asr Time: {asr_time}')
-        logging.info(f'Maghrib Time: {maghrib_time}')
-        logging.info(f'Isha Time: {isha_time}')
-        logging.info(now)
+        # Log the fetched prayer times
+        for i, prayer_name in enumerate(prayers):
+            logging.info(f'{prayer_name} Time: {prayer_times[i]}')
+
+        logging.info(f'Now: {now}')
 
         upcoming_prayers = [time for time in prayer_times if time > now]
 
@@ -129,9 +137,10 @@ async def prayer_time_loop():
         next_prayer_time = min(upcoming_prayers)
         time_until_next_prayer = next_prayer_time - now
         total_seconds_until_prayer = int(time_until_next_prayer.total_seconds())
-        logging.info(f'Time until the next prayer: {total_seconds_until_prayer} seconds')
+        logging.info(f'Time until the next prayer: {total_seconds_until_prayer // 60} minute/s')
 
         if 120 >= total_seconds_until_prayer >= 0:
+            # Wait 10 minutes after prayer time before sending
             await asyncio.sleep(10 * 60)
             await send_local_quranic_pages()
             await bot.send_message(chat_id=channel_id, text=f"ورد صلاة {prayers[current_prayer]} ♡")
@@ -142,4 +151,3 @@ async def prayer_time_loop():
 
 if __name__ == "__main__":
     asyncio.run(prayer_time_loop())
-
