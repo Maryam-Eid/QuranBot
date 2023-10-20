@@ -124,7 +124,6 @@ async def prayer_time_loop():
         # Log the fetched prayer times
         for i, prayer_name in enumerate(prayers):
             logging.info(f'{prayer_name} Time: {prayer_times[i]}')
-
         logging.info(f'Now: {now}')
 
         upcoming_prayers = [time for time in prayer_times if time > now]
