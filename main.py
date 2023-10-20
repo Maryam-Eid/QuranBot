@@ -138,7 +138,7 @@ async def prayer_time_loop():
         total_seconds_until_prayer = int(time_until_next_prayer.total_seconds())
         logging.info(f'Time until the next prayer: {total_seconds_until_prayer // 60} minute/s')
 
-        if 120 >= total_seconds_until_prayer >= 0:
+        if 300 >= total_seconds_until_prayer >= 0:
             # Wait 10 minutes after prayer time before sending
             await asyncio.sleep(10 * 60)
             await send_local_quranic_pages()
