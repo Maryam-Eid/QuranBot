@@ -28,8 +28,8 @@ current_page_file = 'current_page.txt'
 # Function to get a list of local Quranic pages
 def get_local_quranic_pages():
     pages = glob('quran-images/*.png')
-    pages.sort()
-    return pages
+    sorted_pages = sorted(pages, key=lambda x: int(re.search(r'\d+', x).group()))
+    return sorted_pages
 
 
 # Function to send local Quranic pages to the Telegram channel
@@ -100,7 +100,7 @@ async def calculate_prayer_time(prayer_name, date):
 # Function to continuously check and send prayer times
 async def prayer_time_loop():
     prayers = ['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء']
-    current_prayer = 4
+    current_prayer = 0
 
     tz_cairo = pytz.timezone('Africa/Cairo')
 
@@ -145,7 +145,7 @@ async def prayer_time_loop():
             await bot.send_message(chat_id=channel_id, text=f"ورد صلاة {prayers[current_prayer]} ♡")
             current_prayer = (current_prayer + 1) % len(prayers)
         else:
-            await asyncio.sleep(total_seconds_until_prayer - 60)
+            await asyncio.sleep(total_seconds_until_prayer - 80)
 
 
 if __name__ == "__main__":
