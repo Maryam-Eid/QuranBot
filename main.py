@@ -2,7 +2,7 @@ import asyncio
 import logging
 import os
 import re
-from datetime import datetime
+from datetime import datetime, time
 from dotenv import load_dotenv
 import pytz
 from glob import glob
@@ -77,6 +77,12 @@ def parse_prayer_time(time_str, tzinfo):
     return prayer_time
 
 
+def is_time():
+    tz_cairo = pytz.timezone('Africa/Cairo')
+    now = datetime.now(tz_cairo)
+    return time(20, 0) <= now.time() <= time(20, 10)
+
+
 # Function to fetch and calculate prayer times
 async def calculate_prayer_time(prayer_name, date):
     try:
@@ -99,53 +105,63 @@ async def calculate_prayer_time(prayer_name, date):
 
 # Function to continuously check and send prayer times
 async def prayer_time_loop():
-    prayers = ['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء']
-    current_prayer = 0
+    # prayers = ['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء']
+    # current_prayer = 0
 
-    tz_cairo = pytz.timezone('Africa/Cairo')
+    # tz_cairo = pytz.timezone('Africa/Cairo')
 
     while True:
-        now = datetime.now(tz_cairo)
-        logging.info("Fetching prayer times from the API...")
+        # now = datetime.now(tz_cairo)
+        # logging.info("Fetching prayer times from the API...")
 
         # Fetch prayer times for the current day
-        fajr_time = await calculate_prayer_time('Fajr', now)
-        dhuhr_time = await calculate_prayer_time('Dhuhr', now)
-        asr_time = await calculate_prayer_time('Asr', now)
-        maghrib_time = await calculate_prayer_time('Maghrib', now)
-        isha_time = await calculate_prayer_time('Isha', now)
-
-        prayer_times = [fajr_time, dhuhr_time, asr_time, maghrib_time, isha_time]
-        if any(time is None for time in prayer_times):
-            logging.error("Error fetching prayer times. Retrying...")
-            await asyncio.sleep(60)
-            continue
+        # fajr_time = await calculate_prayer_time('Fajr', now)
+        # dhuhr_time = await calculate_prayer_time('Dhuhr', now)
+        # asr_time = await calculate_prayer_time('Asr', now)
+        # maghrib_time = await calculate_prayer_time('Maghrib', now)
+        # isha_time = await calculate_prayer_time('Isha', now)
+        #
+        # prayer_times = [fajr_time, dhuhr_time, asr_time, maghrib_time, isha_time]
+        # if any(time is None for time in prayer_times):
+        #     logging.error("Error fetching prayer times. Retrying...")
+        #     await asyncio.sleep(60)
+        #     continue
 
         # Log the fetched prayer times
-        for i, prayer_name in enumerate(prayers):
-            logging.info(f'{prayer_name} Time: {prayer_times[i]}')
-        logging.info(f'Now: {now}')
+        # for i, prayer_name in enumerate(prayers):
+        #     logging.info(f'{prayer_name} Time: {prayer_times[i]}')
+        # logging.info(f'Now: {now}')
+        #
+        # upcoming_prayers = [time for time in prayer_times if time > now]
+        #
+        # if not upcoming_prayers:
+        #     logging.info("No upcoming prayer times. Waiting for the next fetch...")
+        #     await asyncio.sleep(7200)
+        #     continue
+        #
+        # next_prayer_time = min(upcoming_prayers)
+        # time_until_next_prayer = next_prayer_time - now
+        # total_seconds_until_prayer = int(time_until_next_prayer.total_seconds())
+        # logging.info(f'Time until the next prayer: {total_seconds_until_prayer // 60} minute/s')
+        #
+        # if 300 >= total_seconds_until_prayer >= 0:
+        #     # Wait 10 minutes after prayer time before sending
+        #     await asyncio.sleep(10 * 60)
+        #     await send_local_quranic_pages()
+        #     await bot.send_message(chat_id=channel_id, text=f"ورد اليوم ♡")
+        #     current_prayer = (current_prayer + 1) % len(prayers)
+        # else:
+        #     await asyncio.sleep(total_seconds_until_prayer - 80)
 
-        upcoming_prayers = [time for time in prayer_times if time > now]
-
-        if not upcoming_prayers:
-            logging.info("No upcoming prayer times. Waiting for the next fetch...")
-            await asyncio.sleep(7200)
-            continue
-
-        next_prayer_time = min(upcoming_prayers)
-        time_until_next_prayer = next_prayer_time - now
-        total_seconds_until_prayer = int(time_until_next_prayer.total_seconds())
-        logging.info(f'Time until the next prayer: {total_seconds_until_prayer // 60} minute/s')
-
-        if 300 >= total_seconds_until_prayer >= 0:
-            # Wait 10 minutes after prayer time before sending
-            await asyncio.sleep(10 * 60)
-            await send_local_quranic_pages()
-            await bot.send_message(chat_id=channel_id, text=f"ورد صلاة {prayers[current_prayer]} ♡")
-            current_prayer = (current_prayer + 1) % len(prayers)
-        else:
-            await asyncio.sleep(total_seconds_until_prayer - 80)
+        while True:
+            if is_time():
+                await send_local_quranic_pages()
+                await bot.send_message(chat_id=channel_id, text=f"ورد اليوم ♡")
+                # Wait for 24 hours (86400
+                await asyncio.sleep(86400)
+            else:
+                # Check every minute
+                await asyncio.sleep(60)
 
 
 if __name__ == "__main__":
